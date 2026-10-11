@@ -5,6 +5,9 @@ const SaveContext = createContext<SaveContextType>({
   save: null,
   setSave: () => {},
   openSaveFile: () => {},
+  saveFileName: null,
+  exportSaveWithUnlockedWeapons: async () => {},
+  repairWeaponWheel: async () => {},
 })
 
 export default SaveContext

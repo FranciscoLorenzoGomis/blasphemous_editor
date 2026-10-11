@@ -1,6 +1,11 @@
 import { useRef, useState, type ReactNode } from "react"
 import SaveContext, { useSave } from "./SaveContext"
 import { parseSaveFile, type ReadableSaveJson } from "../utils/saveParser"
+import type { ArsenalWeaponKey } from "../utils/arsenalWeapons"
+import {
+  repairWeaponWheelInSaveBytes,
+  unlockWeaponsInSaveBytes,
+} from "../utils/saveWeaponEditor"
 
 export function OpenSaveButton() {
   const { openSaveFile } = useSave()
@@ -34,6 +39,8 @@ export function OpenSaveButton() {
 
 export default function SaveProvider({ children }: { children?: ReactNode }) {
   const [save, setSave] = useState<ReadableSaveJson | null>(null)
+  const [saveFileName, setSaveFileName] = useState<string | null>(null)
+  const [saveBytes, setSaveBytes] = useState<Uint8Array | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const onFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,13 +49,74 @@ export default function SaveProvider({ children }: { children?: ReactNode }) {
     if (!file) return
 
     try {
-      const parsed = await parseSaveFile(file)
+      const bytes = new Uint8Array(await file.arrayBuffer())
+      const parsed = await parseSaveFile(bytes)
       console.log(parsed)
       setSave(parsed)
+      setSaveFileName(file.name)
+      setSaveBytes(bytes)
     } catch (err) {
       setSave(null)
+      setSaveFileName(null)
+      setSaveBytes(null)
       console.error(err)
     }
+  }
+
+  const exportSaveWithUnlockedWeapons = async (
+    weaponKeys: ArsenalWeaponKey[],
+  ): Promise<void> => {
+    if (!saveBytes) {
+      throw new Error("Load a save file first")
+    }
+
+    const updatedBytes = unlockWeaponsInSaveBytes(saveBytes, weaponKeys)
+    const parsed = await parseSaveFile(updatedBytes)
+
+    const outputName = (saveFileName ?? "savegame.bin").replace(
+      /\.bin$/i,
+      "-weapons.bin",
+    )
+
+    const blob = new Blob([updatedBytes], { type: "application/octet-stream" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = outputName
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+
+    setSave(parsed)
+    setSaveBytes(updatedBytes)
+  }
+
+  const repairWeaponWheel = async (): Promise<void> => {
+    if (!saveBytes) {
+      throw new Error("Load a save file first")
+    }
+
+    const repairedBytes = repairWeaponWheelInSaveBytes(saveBytes)
+    const parsed = await parseSaveFile(repairedBytes)
+
+    const outputName = (saveFileName ?? "savegame.bin").replace(
+      /\.bin$/i,
+      "-repair.bin",
+    )
+
+    const blob = new Blob([repairedBytes], { type: "application/octet-stream" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = outputName
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+
+    setSave(parsed)
+    setSaveBytes(repairedBytes)
   }
 
   return (
@@ -57,6 +125,9 @@ export default function SaveProvider({ children }: { children?: ReactNode }) {
         save,
         setSave,
         openSaveFile: () => inputRef.current?.click(),
+        saveFileName,
+        exportSaveWithUnlockedWeapons,
+        repairWeaponWheel,
       }}
     >
       <input

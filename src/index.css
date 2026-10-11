@@ -1124,6 +1124,55 @@ code {
   color: var(--text-h);
 }
 
+.player .arsenal-editor {
+  margin-top: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  background: var(--code-bg);
+}
+
+.player .arsenal-editor-title {
+  margin: 0 0 0.5rem;
+  color: var(--text-h);
+  font-weight: 600;
+}
+
+.player .arsenal-editor-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  margin-bottom: 0.6rem;
+}
+
+.player .arsenal-editor-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+}
+
+.player .arsenal-editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
+}
+
+.player .arsenal-editor-note,
+.player .arsenal-editor-status {
+  margin: 0;
+  font-size: 0.78rem;
+}
+
+.player .arsenal-editor-note {
+  color: var(--text-lo);
+}
+
+.player .arsenal-editor-status {
+  color: var(--text-h);
+  margin-top: 0.15rem;
+}
+
 .player .relic-cards {
   --relic-card-width: 10.5rem;
   display: flex;
